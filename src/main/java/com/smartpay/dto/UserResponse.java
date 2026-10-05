@@ -1,6 +1,7 @@
 package com.smartpay.dto;
 
 import com.smartpay.entity.Role;
+import com.smartpay.entity.User;
 import com.smartpay.entity.UserStatus;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,16 @@ public class UserResponse {
         this.role = role;
         this.status = status;
         this.createdAt = createdAt;
+    }
+
+    public static UserResponse from(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getCreatedAt());
     }
 
     public Long getId() {

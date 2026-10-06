@@ -13,6 +13,8 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     Optional<Wallet> findByUserId(Long userId);
 
+    boolean existsByUserId(Long userId);
+
     // Locks the wallet row until the transaction ends (SELECT ... FOR UPDATE)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select w from Wallet w where w.userId = :userId")

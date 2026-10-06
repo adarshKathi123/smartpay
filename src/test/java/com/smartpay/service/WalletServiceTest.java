@@ -1,19 +1,27 @@
 package com.smartpay.service;
 
+import com.smartpay.entity.User;
+import com.smartpay.entity.UserStatus;
 import com.smartpay.entity.Wallet;
+import com.smartpay.exception.BusinessRuleException;
+import com.smartpay.repository.UserRepository;
 import com.smartpay.repository.WalletRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -21,6 +29,9 @@ class WalletServiceTest {
 
     @Mock
     private WalletRepository walletRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private WalletService walletService;
@@ -40,6 +51,7 @@ class WalletServiceTest {
     void deposit_addsAmountToExistingBalance() {
         Wallet wallet = new Wallet(1L);
         wallet.setBalance(new BigDecimal("100.00"));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mock(User.class)));
         when(walletRepository.findByUserIdForUpdate(1L)).thenReturn(Optional.of(wallet));
         when(walletRepository.save(any(Wallet.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -51,6 +63,7 @@ class WalletServiceTest {
 
     @Test
     void deposit_createsWalletAndAddsAmount_whenMissing() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(mock(User.class)));
         when(walletRepository.findByUserIdForUpdate(2L)).thenReturn(Optional.empty());
         when(walletRepository.save(any(Wallet.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -58,5 +71,18 @@ class WalletServiceTest {
 
         assertEquals(Long.valueOf(2L), result.getUserId());
         assertEquals(0, result.getBalance().compareTo(new BigDecimal("25.50")));
+    }
+
+    @Test
+    void deposit_frozenUser_isRejected() {
+        User frozen = mock(User.class);
+        when(frozen.getStatus()).thenReturn(UserStatus.FROZEN);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(frozen));
+
+        BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                () -> walletService.deposit(1L, new BigDecimal("10.00")));
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
+        verifyNoInteractions(walletRepository);
     }
 }

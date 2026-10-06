@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,12 +78,51 @@ class TransactionHistoryServiceTest {
     }
 
     @Test
+    void getHistory_depositIsReceivedWithNoCounterparty() {
+        Wallet myWallet = mock(Wallet.class);
+        when(myWallet.getId()).thenReturn(10L);
+        when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(myWallet));
+
+        Transaction deposit = new Transaction(
+                "deposit-ref",
+                "deposit-key",
+                null,
+                10L,
+                new BigDecimal("500.00"),
+                TransactionType.DEPOSIT,
+                TransactionStatus.SUCCESS
+        );
+
+        when(transactionRepository.findByWalletId(eq(10L), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(
+                        List.of(deposit),
+                        PageRequest.of(0, 20),
+                        1
+                ));
+        when(walletRepository.findAllById(any())).thenReturn(List.of());
+
+        PageResponse<TransactionHistoryItem> result =
+                historyService.getHistory(1L, 0, 20);
+
+        assertEquals(1, result.content().size());
+
+        TransactionHistoryItem item = result.content().get(0);
+
+        assertEquals("RECEIVED", item.direction());
+        assertEquals(TransactionType.DEPOSIT, item.type());
+        assertEquals(TransactionStatus.SUCCESS, item.status());
+        assertEquals(0, new BigDecimal("500.00").compareTo(item.amount()));
+        assertEquals(null, item.counterpartyUserId());
+        assertEquals(1, result.totalElements());
+    }
+
+    @Test
     void getHistory_capsPageSizeAndFixesNegativePage() {
         Wallet myWallet = mock(Wallet.class);
         when(myWallet.getId()).thenReturn(10L);
         when(walletRepository.findByUserId(1L)).thenReturn(Optional.of(myWallet));
         when(transactionRepository.findByWalletId(eq(10L), any(Pageable.class)))
-                .thenReturn(new PageImpl<Transaction>(List.of(), PageRequest.of(0, 50), 0));
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 50), 0));
 
         historyService.getHistory(1L, -3, 500);
 

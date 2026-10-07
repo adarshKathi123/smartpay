@@ -3,6 +3,7 @@ package com.smartpay.controller;
 import com.smartpay.dto.AdminUserStatusResponse;
 import com.smartpay.entity.User;
 import com.smartpay.service.AdminUserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/users")
+@SecurityRequirement(name = "bearerAuth")
 public class AdminController {
 
     private final AdminUserService adminUserService;

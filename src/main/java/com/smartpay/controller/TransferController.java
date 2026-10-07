@@ -4,6 +4,7 @@ import com.smartpay.dto.TransactionResponse;
 import com.smartpay.dto.TransferRequest;
 import com.smartpay.service.TransferResult;
 import com.smartpay.service.TransferService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/transfers")
+@SecurityRequirement(name = "bearerAuth")
 public class TransferController {
 
     private final TransferService transferService;

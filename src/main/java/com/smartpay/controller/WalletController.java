@@ -3,6 +3,7 @@ package com.smartpay.controller;
 import com.smartpay.dto.DepositRequest;
 import com.smartpay.dto.WalletResponse;
 import com.smartpay.service.WalletService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/wallet")
+@SecurityRequirement(name = "bearerAuth")
 public class WalletController {
 
     private final WalletService walletService;

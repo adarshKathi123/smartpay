@@ -45,9 +45,6 @@ public class Transaction {
     @Column(nullable = false)
     private TransactionStatus status;
 
-    @Column(name = "failure_reason", length = 500)
-    private String failureReason;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -112,10 +109,6 @@ public class Transaction {
 
     public TransactionStatus getStatus() {
         return status;
-    }
-
-    public String getFailureReason() {
-        return failureReason;
     }
 
     public LocalDateTime getCreatedAt() {
